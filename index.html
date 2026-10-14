@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="PT-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOGO DE PERGUNTAS E RESPOSTAS</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        body {
+            background-color: #1a1a2e;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #f39c12;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            margin-top: 20px;
+        }
+        .btn {
+            background-color: #e94560;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 8px 0;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        .btn:hover {
+            background-color: #ff6b81;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #0f3460;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #0f3460;
+            color: #f39c12;
+        }
+        .highlight {
+            background-color: #e94560 !important;
+            color: white;
+        }
+        .question-box {
+            background-color: #0f3460;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .log-box {
+            background-color: #111;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #2ecc71;
+            margin-top: 15px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>JOGO DOS DESAFIOS DO SABER</h1>
+
+    <!-- TELA 1: ESCOLHA DO JOGADOR -->
+    <div id="screen-setup" class="container">
+        <h2>ESCOLHA O SEU PERSONAGEM</h2>
+        <p>SELECIONE QUEM VOCÊ VAI SER:</p>
+        <button class="btn" onclick="startGame('YASMIN')">YASMIN</button>
+        <button class="btn" onclick="startGame('GREGÓRIO')">GREGÓRIO</button>
+        <button class="btn" onclick="startGame('FREDERICO')">FREDERICO</button>
+        <button class="btn" onclick="startGame('KAUÊ')">KAUÊ</button>
+        <button class="btn" onclick="startGame('MARIA')">MARIA</button>
+        <button class="btn" onclick="startGame('AGATHA')">AGATHA</button>
+    </div>
+
+    <!-- TELA 2: JOGO ATIVO -->
+    <div id="screen-game" class="container hidden">
+        <h2>PLACAR DA RODADA</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>JOGADOR</th>
+                    <th>DINHEIRO (R$)</th>
+                </tr>
+            </thead>
+            <tbody id="scoreboard-body">
+                <!-- PREENCHIDO VIA JAVASCRIPT -->
+            </tbody>
+        </table>
+
+        <div class="question-box">
+            <h3 id="q-value">VALOR: R$ 0,00</h3>
+            <p id="q-text">CARREGANDO PERGUNTA...</p>
+            <div id="options-container">
+                <!-- OPÇÕES VIA JS -->
+            </div>
+        </div>
+
+        <div class="log-box" id="log-box">
+            JOGO INICIADO. BOA SORTE!
+        </div>
+    </div>
+
+    <!-- TELA 3: FIM DE JOGO -->
+    <div id="screen-end" class="container hidden">
+        <h2>FIM DE JOGO!</h2>
+        <h3 id="winner-text">VENCEDOR: </h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>POSIÇÃO</th>
+                    <th>JOGADOR</th>
+                    <th>VALOR FINAL</th>
+                </tr>
+            </thead>
+            <tbody id="final-scoreboard">
+                <!-- PREENCHIDO VIA JS -->
+            </tbody>
+        </table>
+        <button class="btn" onclick="location.reload()">JOGAR NOVAMENTE</button>
+    </div>
+
+    <script>
+        const personagens = ['YASMIN', 'GREGÓRIO', 'FREDERICO', 'KAUÊ', 'MARIA', 'AGATHA'];
+        let scores = {};
+        let playerChososen = '';
+        let currentQuestionIndex = 0;
+
+        const perguntas = [
+            {
+                texto: "QUANTO É 1 + 4?",
+                valor: 5,
+                opcoes: ["A) 3", "B) 5", "C) 6"],
+                correta: 1
+            },
+            {
+                texto: "COMPLETE A PALAVRA: DINOSSAU__?",
+                valor: 10,
+                opcoes: ["A) RO", "B) CO", "C) DO"],
+                correta: 0
+            },
+            {
+                texto: "QUANTO É 2 + 3?",
+                valor: 5,
+                opcoes: ["A) 4", "B) 5", "C) 7"],
+                correta: 1
+            },
+            {
+                texto: "QUAL É A LETRA INICIAL DA PALAVRA 'BOLA'?",
+                valor: 10,
+                opcoes: ["A) P", "B) B", "C) M"],
+                correta: 1
+            },
+            {
+                texto: "QUANTO É 5 X 2?",
+                valor: 50,
+                opcoes: ["A) 10", "B) 7", "C) 12"],
+                correta: 0
+            },
+            {
+                texto: "COMPLETE: ESCOL__ (LOCAL DE ESTUDO)",
+                valor: 10,
+                opcoes: ["A) A", "B) O", "C) I"],
+                correta: 0
+            },
+            {
+                texto: "QUANTO É 10 - 4?",
+                valor: 5,
+                opcoes: ["A) 5", "B) 6", "C) 7"],
+                correta: 1
+            },
+            {
+                texto: "QUANTO É 20 / 2?",
+                valor: 50,
+                opcoes: ["A) 5", "B) 10", "C) 15"],
+                correta: 1
+            },
+            {
+                texto: "COMPLETE: CA__EIRA (MÓVEL PARA SENTAR)",
+                valor: 10,
+                opcoes: ["A) DÉ", "B) TE", "C) PE"],
+                correta: 1
+            },
+            {
+                texto: "QUANTO É 7 + 8?",
+                valor: 50,
+                opcoes: ["A) 14", "B) 15", "C) 16"],
+                correta: 1
+            }
+        ];
+
+        function startGame(nome) {
+            playerChososen = nome;
+            personagens.forEach(p => scores[p] = 0);
+            
+            document.getElementById('screen-setup').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            
+            loadQuestion();
+            updateScoreboard();
+        }
+
+        function updateScoreboard(logs = []) {
+            const tbody = document.getElementById('scoreboard-body');
+            tbody.innerHTML = '';
+
+            // ORDENAR DO MAIOR PARA O MENOR DINHEIRO
+            const sorted = [...personagens].sort((a, b) => scores[b] - scores[a]);
+
+            sorted.forEach(p => {
+                const tr = document.createElement('tr');
+                if (p === playerChososen) {
+                    tr.classList.add('highlight');
+                }
+                tr.innerHTML = `<td>${p} ${p === playerChososen ? '(VOCÊ)' : ''}</td><td>R$ ${scores[p].toFixed(2).replace('.', ',')}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            if (logs.length > 0) {
+                const logBox = document.getElementById('log-box');
+                logs.forEach(msg => {
+                    logBox.innerHTML += `<br>${msg}`;
+                });
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= perguntas.length) {
+                endGame();
+                return;
+            }
+
+            const q = perguntas[currentQuestionIndex];
+            document.getElementById('q-value').innerText = `VALOR DA QUESTÃO: R$ ${q.valor},00`;
+            document.getElementById('q-text').innerText = q.texto;
+
+            const optContainer = document.getElementById('options-container');
+            optContainer.innerHTML = '';
+
+            q.opcoes.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = opt;
+                btn.onclick = () => handlePlayerAnswer(index);
+                optContainer.appendChild(btn);
+            });
+        }
+
+        function handlePlayerAnswer(selectedIndex) {
+            const q = perguntas[currentQuestionIndex];
+            let turnLogs = [];
+            let playerCorrect = (selectedIndex === q.correta);
+
+            if (playerCorrect) {
+                scores[playerChososen] += q.valor;
+                turnLogs.push(`PARABÉNS! VOCÊ ACERTOU E GANHOU R$ ${q.valor},00!`);
+            } else {
+                turnLogs.push(`VOCÊ ERROU A PERGUNTA! NENHUM VALOR ADICIONADO.`);
+            }
+
+            // PROCESSAR JOGADORES NÃO ESCOLHIDOS (50% DE CHANCE)
+            personagens.forEach(p => {
+                if (p !== playerChososen) {
+                    const acertou = Math.random() < 0.5;
+                    if (acertou) {
+                        scores[p] += q.valor;
+                        turnLogs.push(`${p} ACERTOU A PERGUNTA E GANHOU R$ ${q.valor},00!`);
+                    } else {
+                        turnLogs.push(`${p} ERROU A PERGUNTA.`);
+                    }
+                }
+            });
+
+            currentQuestionIndex++;
+            updateScoreboard(turnLogs);
+
+            setTimeout(() => {
+                loadQuestion();
+            }, 3000);
+        }
+
+        function endGame() {
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-end').classList.remove('hidden');
+
+            const sorted = [...personagens].sort((a, b) => scores[b] - scores[a]);
+            document.getElementById('winner-text').innerText = `VENCEDOR: ${sorted[0]} COM R$ ${scores[sorted[0]].toFixed(2).replace('.', ',')}!`;
+
+            const finalTbody = document.getElementById('final-scoreboard');
+            finalTbody.innerHTML = '';
+
+            sorted.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${index + 1}º LUGAR</td><td>${p}</td><td>R$ ${scores[p].toFixed(2).replace('.', ',')}</td>`;
+                finalTbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
